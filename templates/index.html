@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Friendly Neighbourhood Chef AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <main class="container">
+        <h1>🧑‍🍳 The Friendly Neighbourhood Chef AI</h1>
+        <p>Out of ideas? List the ingredients you have, and the AI will invent a recipe for you.</p>
+
+        <form id="recipe-form">
+            <div class="form-group">
+                <label for="ingredients">Your Ingredients:</label>
+                <textarea id="ingredients" name="ingredients" rows="4" placeholder="e.g., chicken breast, rice, broccoli, soy sauce"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="diet">Dietary Style (optional):</label>
+                <input type="text" id="diet" name="diet" placeholder="e.g., vegetarian, low-carb, gluten-free">
+            </div>
+
+            <button type="submit" id="generate-btn">Generate Recipe</button>
+        </form>
+
+        <div id="result-container">
+            </div>
+
+         <form id="modify-form" style="display: none;">
+            <div class="form-group">
+                <label for="modification-request">Need a change? (e.g., "I don't have tomatoes" or "make it spicier")</label>
+                <input type="text" id="modification-request" name="modification-request" placeholder="Your request...">
+            </div>
+            <button type="submit" id="modify-btn">Update Recipe</button>
+        </form>
+    </main>
+
+    <script>
+        // Get references to ALL our HTML elements
+        const recipeForm = document.getElementById('recipe-form');
+        const ingredientsInput = document.getElementById('ingredients');
+        const dietInput = document.getElementById('diet');
+        const generateBtn = document.getElementById('generate-btn');
+        
+        const resultContainer = document.getElementById('result-container');
+        
+        const modifyForm = document.getElementById('modify-form');
+        const modificationInput = document.getElementById('modification-request');
+        const modifyBtn = document.getElementById('modify-btn');
+
+        // Store the original recipe for context
+        let originalRecipe = "";
+        let originalIngredients = "";
+
+        // Listen for the INITIAL form submission
+        recipeForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            originalIngredients = ingredientsInput.value.trim();
+            const diet = dietInput.value.trim();
+
+            if (!originalIngredients) {
+                alert('Please enter some ingredients!');
+                return;
+            }
+
+            // Show loading message
+            resultContainer.innerHTML = '<p class="loading">👨‍🍳 The chef is thinking...</p>';
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            modifyForm.style.display = 'none'; // Hide modify form during generation
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ingredients: originalIngredients, diet })
+                });
+
+                const data = await response.json();
+                handleResponse(data);
+
+            } catch (error) {
+                handleError(error);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Recipe';
+            }
+        });
+        
+        // NEW: Listen for the MODIFICATION form submission
+        modifyForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const modificationRequest = modificationInput.value.trim();
+            if (!modificationRequest) {
+                alert('Please enter a modification request!');
+                return;
+            }
+            
+            resultContainer.innerHTML = '<p class="loading">👨‍🍳 The chef is updating the recipe...</p>';
+            modifyBtn.disabled = true;
+            modifyBtn.textContent = 'Updating...';
+            
+            try {
+                const response = await fetch('/modify', { // Calls our new backend route
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        original_recipe: originalRecipe, 
+                        modification_request: modificationRequest
+                    })
+                });
+
+                const data = await response.json();
+                handleResponse(data);
+
+            } catch (error) {
+                handleError(error);
+            } finally {
+                modifyBtn.disabled = false;
+                modifyBtn.textContent = 'Update Recipe';
+                modificationInput.value = ''; // Clear the input
+            }
+        });
+
+        function handleResponse(data) {
+            if (data.recipe) {
+                originalRecipe = data.recipe; // Save the latest recipe for future modifications
+                const formattedRecipe = formatRecipe(data.recipe);
+                resultContainer.innerHTML = formattedRecipe;
+                modifyForm.style.display = 'block'; // Show the modify form
+            } else {
+                resultContainer.innerHTML = `<p class="error">${data.error || 'An unknown error occurred.'}</p>`;
+                modifyForm.style.display = 'none'; // Hide modify form on error
+            }
+        }
+
+        function handleError(error) {
+            console.error('Error:', error);
+            resultContainer.innerHTML = '<p class="error">Sorry, the kitchen is closed. Please try again later.</p>';
+            modifyForm.style.display = 'none';
+        }
+
+        function formatRecipe(text) {
+             return text.replace(/### (.*?)\n/g, '<h3>$1</h3>')
+                        .replace(/-\s(.*?)\n/g, '<li>$1</li>')
+                        .replace(/(\d+)\.\s(.*?)\n/g, '<li>$2</li>')
+                        .replace(/Ingredients\s*<\/h3>\s*/, '<h3>Ingredients</h3><ul>')
+                        .replace(/Instructions\s*<\/h3>\s*/, '<h3>Instructions</h3><ol>')
+                        .replace(/<\/ul>\s*<h3>Instructions/, '</ul><h3>Instructions')
+                        .replace(/<\/ol>\s*$/, '</ul></ol>');
+        }
+    </script>
+</body>
+</html>
