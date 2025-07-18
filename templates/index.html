@@ -15,12 +15,12 @@
         <form id="recipe-form">
             <div class="form-group">
                 <label for="ingredients">Your Ingredients:</label>
-                <textarea id="ingredients" name="ingredients" rows="4" placeholder="e.g., chicken breast, rice, broccoli, soy sauce"></textarea>
+                <textarea id="ingredients" name="ingredients" rows="4" placeholder="e.g., chicken, rice, tomaato, paneer"></textarea>
             </div>
             
             <div class="form-group">
                 <label for="diet">Dietary Style (optional):</label>
-                <input type="text" id="diet" name="diet" placeholder="e.g., vegetarian, low-carb, gluten-free">
+                <input type="text" id="diet" name="diet" placeholder="e.g., vegetarian, low-carb, spicy">
             </div>
 
             <button type="submit" id="generate-btn">Generate Recipe</button>
@@ -36,8 +36,10 @@
             </div>
             <button type="submit" id="modify-btn">Update Recipe</button>
         </form>
+        <footer><p>..Created by Somvanshi..</p></footer>
     </main>
-
+    
+    
     <script>
         // Get references to ALL our HTML elements
         const recipeForm = document.getElementById('recipe-form');
@@ -155,5 +157,6 @@
                         .replace(/<\/ol>\s*$/, '</ul></ol>');
         }
     </script>
+    
 </body>
 </html>
