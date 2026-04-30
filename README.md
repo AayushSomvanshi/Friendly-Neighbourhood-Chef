@@ -36,9 +36,14 @@ An AI-powered web application that generates authentic North Indian recipes usin
 
 ## 📸 Screenshots
 
-*(Add screenshots here after uploading them to your repo)*
+### 🏠 Home Page
+![Home Page](screenshots/home.png)
 
----
+### 🍲 Generated Recipe
+![Generated Recipe](screenshots/generate.png)
+
+### 🔄 Modify Recipe
+![Modify Recipe](screenshots/modify.png)
 
 ## 🔐 Environment Variables
 
