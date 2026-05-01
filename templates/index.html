@@ -148,6 +148,8 @@
         }
 
         function formatRecipe(text) {
+             text = text.replace(/\*\*/g, '');
+
              return text.replace(/### (.*?)\n/g, '<h3>$1</h3>')
                         .replace(/-\s(.*?)\n/g, '<li>$1</li>')
                         .replace(/(\d+)\.\s(.*?)\n/g, '<li>$2</li>')
